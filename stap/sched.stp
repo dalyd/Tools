@@ -1,0 +1,1 @@
+probe kernel.trace("sched_switch"){ print_ubacktrace() }

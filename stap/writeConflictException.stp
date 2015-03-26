@@ -1,0 +1,1 @@
+probe process("/home/user/mongosrc/mongod").function("_ZN5mongo22WriteConflictExceptionC2Ev"){ print_ubacktrace() }
