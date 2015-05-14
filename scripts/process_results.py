@@ -36,8 +36,8 @@ def per_test_data(results) :
     for r in results : 
         if 'singledb' in r : 
             for res in r['singledb'] : 
-                for key in res['results'] : 
-                    if key.isdigit() : 
+                for key in res['nresults'] : 
+                    if key.isdigit(): 
                         values = res['nresults'][key]['ops_per_sec_values']
                         inv_values = [ 1/val for val in values ] 
                         inv_mean = sum(inv_values)/len(inv_values)
@@ -53,7 +53,7 @@ def per_iteration_data(results) :
     for r in results : 
         if 'singledb' in r : 
             for res in r['singledb'] : 
-                for key in res['results'] : 
+                for key in res['nresults'] : 
                     if key.isdigit() : 
                         values = res['nresults'][key]['ops_per_sec_values']
                         for val in values : 
