@@ -6,29 +6,6 @@ import subprocess
 
 client = pymongo.MongoClient()
 
-
-
-def check_monotonic() : 
-    results = coll.find()
-    mon=0
-    nonmon=0
-    for r in results : 
-        for res in r['singledb'] : 
-            for key in res['results'] : 
-                if key.isdigit() : 
-                    values = res['results'][key]['ops_per_sec_values']
-                    monotonic = True
-                    for x in range(len(values) - 1) : 
-                        if values[x] > values[x+1] : 
-                            monotonic = False
-                            nonmon+=1
-                            break
-                            if monotonic : 
-                                print "monotonic"
-                                mon+=1
-                                print ("Found %d monotonic and %d non monotonic" % (mon, nonmon))
-                                
-
 def per_test_data(results) : 
     ''' Process results to print out per test data. Assumes 7 iterations for now.  '''
     out = open("results.csv", "w")
