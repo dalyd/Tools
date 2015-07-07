@@ -5,6 +5,7 @@ import math
 import subprocess
 import numpy
 import json
+import glob
 
 client = pymongo.MongoClient()
 
@@ -12,28 +13,30 @@ client = pymongo.MongoClient()
 def per_test_data(results) : 
     ''' Process results to print out per test data. Assumes 7 iterations for now.  '''
     out = open("results.csv", "w")
-    out.write('name,threads,median,averages,stddev,stddev/avg,x1,x2,x3,x4,x5,x6,x7\n')
+    out.write('name,threads,median,averages,stddev,n,stddev/avg,x1,x2,x3,x4,x5,x6,x7\n')
     for r in results : 
         for res in r['data']['results'] : 
                 for key in res['results'] :
                     if key.isnumeric(): 
                         values = res['results'][key]['ops_per_sec_values']
-                        valstring = ','.join(str(val) for val in values)
                         median = numpy.median(values)
                         stddev = numpy.std(values)
-                        out.write(res['name']+','+ key+','+ str(median) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(stddev)+','+ str(stddev/res['results'][key]['ops_per_sec']) + ',' + valstring + '\n')
+                        valstring = ','.join(str(val) for val in values)
+                        out.write(res['name']+','+ key+','+ str(median) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(stddev)+',' + str(len(values)) + ',' + str(stddev/res['results'][key]['ops_per_sec']) + ',' + valstring + '\n')
 
 def per_iteration_data(results) : 
     ''' Process results to print out data per test iteration. Removes mongo-perfs default aggregation  '''
     out = open("results.iter.csv", "w")
-    out.write('name,threads,median,averages,stddev,x,n,time\n')
+    out.write('name,threads,median,averages,stddev,n,x\n')
     for r in results : 
-            for res in r['data'] : 
-                for key in res['results'] : 
-                    if key.isdigit() : 
+        for res in r['data']['results'] : 
+                for key in res['results'] :
+                    if key.isnumeric(): 
                         values = res['results'][key]['ops_per_sec_values']
+                        median = numpy.median(values)
+                        stddev = numpy.std(values)
                         for val in values : 
-                            out.write(res['name']+','+ key+','+ str(res['results'][key]['median']) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(res['results'][key]['standardDeviation'])+','+ str(res['results'][key]['n'])+','+str(val) + ',' + str(res['results'][key]['elapsed_secs'])+'\n')
+                            out.write(res['name']+','+ key+','+ str(median) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(stddev)+',' + str(len(values)) + ',' +str(val)+'\n')
 
 def load_data(filename='results.json') : 
     ''' Read the input file into a json array '''
@@ -43,6 +46,13 @@ def load_data(filename='results.json') :
         return results
     else :
         return [results]
+
+def load_all_data() :
+    ''' Load all the json files in the directory '''
+    results = []
+    for file in glob.glob("*.json") : 
+        results.extend(load_data(file))
+    return results
 
 def import_data(filename='results.json', dbname='results', colname='test') : 
     ''' Import json from filename
@@ -54,9 +64,7 @@ def import_data(filename='results.json', dbname='results', colname='test') :
     
 
 if __name__ == "__main__":
-    import_data()
-    coll = client.results['test']
-    results = coll.find()
+    
+    results = load_all_data()
     per_test_data(results)
-    results = coll.find()
     per_iteration_data(results)
