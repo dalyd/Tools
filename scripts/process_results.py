@@ -13,7 +13,7 @@ client = pymongo.MongoClient()
 def per_test_data(results) : 
     ''' Process results to print out per test data. Assumes 7 iterations for now.  '''
     out = open("results.csv", "w")
-    out.write('name,threads,median,averages,stddev,n,stddev/avg,githash,endtime,x1,x2,x3,x4,x5,x6,x7\n')
+    out.write('name,threads,median,averages,stddev,n,stddev/avg,range/avg,githash,endtime,x1,x2,x3,x4,x5,x6,x7\n')
     for r in results : 
         for res in r['data']['results'] : 
                 for key in res['results'] :
@@ -21,8 +21,9 @@ def per_test_data(results) :
                         values = res['results'][key]['ops_per_sec_values']
                         median = numpy.median(values)
                         stddev = numpy.std(values)
+                        range = max(values) - min(values)
                         valstring = ','.join(str(val) for val in values)
-                        out.write(res['name']+','+ key+','+ str(median) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(stddev)+',' + str(len(values)) + ',' + str(stddev/res['results'][key]['ops_per_sec']) + ',' + r['revision'] +','+ r['data']['end'] + ',' + valstring +  '\n')
+                        out.write(res['name']+','+ key+','+ str(median) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(stddev)+',' + str(len(values)) + ',' + str(stddev/res['results'][key]['ops_per_sec']) + ',' + str(range/res['results'][key]['ops_per_sec']) + ',' + r['revision'] +','+ r['data']['end'] + ',' + valstring +  '\n')
 
 def per_iteration_data(results) : 
     ''' Process results to print out data per test iteration. Removes mongo-perfs default aggregation  '''
