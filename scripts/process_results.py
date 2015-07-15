@@ -21,9 +21,9 @@ def per_test_data(results) :
                         values = res['results'][key]['ops_per_sec_values']
                         median = numpy.median(values)
                         stddev = numpy.std(values)
-                        range = max(values) - min(values)
+                        ranged = max(values) - min(values)
                         valstring = ','.join(str(val) for val in values)
-                        out.write(res['name']+','+ key+','+ str(median) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(stddev)+',' + str(len(values)) + ',' + str(stddev/res['results'][key]['ops_per_sec']) + ',' + str(range/res['results'][key]['ops_per_sec']) + ',' + r['revision'] +','+ r['data']['end'] + ',' + valstring +  '\n')
+                        out.write(res['name']+','+ key+','+ str(median) +','+ str(res['results'][key]["ops_per_sec"])+','+ str(stddev)+',' + str(len(values)) + ',' + str(stddev/res['results'][key]['ops_per_sec']) + ',' + str(ranged/res['results'][key]['ops_per_sec']) + ',' + r['revision'] +','+ r['data']['end'] + ',' + valstring +  '\n')
 
 def per_iteration_data(results) : 
     ''' Process results to print out data per test iteration. Removes mongo-perfs default aggregation  '''
