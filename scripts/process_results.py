@@ -7,9 +7,6 @@ import numpy
 import json
 import glob
 
-client = pymongo.MongoClient()
-
-
 def per_test_data(results) : 
     ''' Process results to print out per test data. Assumes 7 iterations for now.  '''
     out = open("results.csv", "w")
