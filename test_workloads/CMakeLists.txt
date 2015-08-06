@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.1)
 project (TestWorkloads)
 
-find_package(Boost)
+add_definitions(-fno-omit-frame-pointer)
 
+find_package(Boost)
+find_package(Boost COMPONENTS thread system REQUIRED)
+find_package (Threads)
 include_directories(${Boost_INCLUDE_DIRS})
 add_executable(condvar condvar.cpp)
 target_link_libraries(condvar ${Boost_LIBRARIES})
+target_link_libraries (condvar ${CMAKE_THREAD_LIBS_INIT})
