@@ -3,7 +3,6 @@ project (TestWorkloads)
 
 add_definitions(-fno-omit-frame-pointer)
 
-find_package(Boost)
 find_package(Boost COMPONENTS thread system REQUIRED)
 find_package (Threads)
 include_directories(${Boost_INCLUDE_DIRS})
