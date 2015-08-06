@@ -1,6 +1,6 @@
 #include<time.h>
 #include<iostream>
-
+#include<stdint.h>
 
 int main(int argc, char** argv) {
     volatile uint64_t x = 0;
