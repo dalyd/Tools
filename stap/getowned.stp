@@ -1,0 +1,9 @@
+global ownedcount
+probe process("/mnt/data2/user/BF-1114/mongod-performance_linux_wt_standalone_564f8089c0d4541215d1aa31dae331115e68b95f_15_08_25_03_54_24").function("_ZNK5mongo7BSONObj8getOwnedEv") {ownedcount ++ }
+
+probe timer.ms(20000) 
+{
+    printf("Called getOwned %d times\n", ownedcount)
+    exit()   
+
+}
