@@ -15,15 +15,22 @@ int main(int argc, char* argv[])
         {
             try {
                 auto t = pthread_create(&threads[i], NULL, runThread, (void *) &i);
+                if (t !=0)
+                    {
+                        // ERROR
+                        std::cout << "pthread_create returned nonzero: " << t << " on iteration " << i << std::endl;
+                        return(EXIT_FAILURE);
+                    }
                 pthread_detach(threads[i]);
             }
             catch(std::system_error e) {
                 std::cout << "Crashed on " << i << " thread" << std::endl;
+                std::cout << "e.code: " << e.code() << " e.what: " << e.what() << std::endl;
                 return(EXIT_FAILURE);
             }
         }
     std::cout << "Started all threads" << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(10));
-    std::cout << "Slept for 100 seconds" << std::endl;
+    std::cout << "Slept for 10 seconds" << std::endl;
 
 }
