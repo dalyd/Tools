@@ -10,11 +10,20 @@ void *runThread(void *threadid) {
 
 int main(int argc, char* argv[])
 {
+    pthread_attr_t attr;
     pthread_t threads[10000];
+    pthread_attr_init(&attr);
+    auto s = pthread_attr_setstacksize(&attr, 8*1024*1024); // this is default
+    if (s !=0)
+        {
+            std::cout << "pthread_attr_setstacksize returned nonzero: " << s << std::endl;
+            return(EXIT_FAILURE);
+
+        }
     for (int i=0; i < 10000; i++)
         {
             try {
-                auto t = pthread_create(&threads[i], NULL, runThread, (void *) &i);
+                auto t = pthread_create(&threads[i], &attr, runThread, (void *) &i);
                 if (t !=0)
                     {
                         // ERROR
