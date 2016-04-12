@@ -10,52 +10,80 @@ overrides = json.load(open("master/perf_override.json"))
 st_ref = overrides['linux-wt-standalone']['reference']
 
 # This gives a list of tickets total.
-[test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys()]
+# [test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys()]
 
-list(itertools.chain([test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys()]))
-[ticket for ticket in test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys()]
+# list(itertools.chain([test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys()]))
+# [ticket for ticket in test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys()]
 
-# This gets the name of all the things that aren't in a list.
-[name for (name, test) in st_ref.items() if 'ticket' in test.keys() and not isinstance(test['ticket'], list)]
+# # This gets the name of all the things that aren't in a list.
+# [name for (name, test) in st_ref.items() if 'ticket' in test.keys() and not isinstance(test['ticket'], list)]
 
-[test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and not isinstance(test['ticket'], list)]
-# Need to flatten this one
-[test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and isinstance(test['ticket'], list)]
-list(itertools.chain(*[test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and isinstance(test['ticket'], list)]))
+# [test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and not isinstance(test['ticket'], list)]
+# # Need to flatten this one
+# [test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and isinstance(test['ticket'], list)]
+# list(itertools.chain(*[test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and isinstance(test['ticket'], list)]))
 
-# Here we go.
-set(itertools.chain(*[test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and isinstance(test['ticket'], list)]))
+# # Here we go.
+# set(itertools.chain(*[test['ticket'] for (name, test) in st_ref.items() if 'ticket' in test.keys() and isinstance(test['ticket'], list)]))
 
-#This cleans things up. Need to scale it for the whole file.
-for (name, test) in st_ref.items():
-    if 'ticket' in test.keys() and not isinstance(test['ticket'], list):
-        st_ref[name]['ticket'] = list(test['ticket'])
-
-
-# Reset all ndays
-for (variant_key, variant_value) in overrides.items():
-    variant_value['ndays'] = {}
-
-#Clean up all overrides tickets.
-for (variant_key, variant_value) in overrides.items():
-    ref = variant_value['reference']
-    for (name, test) in ref.items():
-        if 'ticket' in test.keys() and not isinstance(test['ticket'], list):
-            test['ticket'] = [test['ticket']]
+# #This cleans things up. Need to scale it for the whole file.
+# for (name, test) in st_ref.items():
+#     if 'ticket' in test.keys() and not isinstance(test['ticket'], list):
+#         st_ref[name]['ticket'] = list(test['ticket'])
 
 
-tickets = set()
-for (variant_key, variant_value) in overrides.items():
-    ref = variant_value['reference']
-    tickets = tickets.union(set(itertools.chain(*[test['ticket'] for (name, test) in ref.items() if
-                                                  'ticket' in test.keys() and
-                                                  isinstance(test['ticket'], list)])))
+def reset_ndays(overrides):
+    """ Remove all ndays overrides
+    Should be extended to remove all non-expired nday overrides, rather than all
+    """
 
-o = override.Override(overrides)
-o.save_to_file("master/perf_override.json")
+    for (variant_key, variant_value) in overrides.items():
+        variant_value['ndays'] = {}
+    return overrides
 
-# Here's a prototype to delete stuff. Let's make it a function.
-pruned = {name: test for (name, test) in st_ref.items() if 'ticket' in test and test['ticket'].count("SERVER-20018") == 0}
+def fix_non_list_tickets(overrides):
+    """ Fix and occurrences with tickets as a string rather than a list
+    """
+    #Clean up all overrides tickets.
+    for (variant_key, variant_value) in overrides.items():
+        ref = variant_value['reference']
+        for (name, test) in ref.items():
+            if 'ticket' in test.keys() and not isinstance(test['ticket'], list):
+                test['ticket'] = [test['ticket']]
+    return (overrides)
+
+def get_tickets(overrides):
+    """ Return a list of all tickets mentioned in overrides """
+    tickets = set()
+    for (variant_key, variant_value) in overrides.items():
+        ref = variant_value['reference']
+        tickets = tickets.union(set(itertools.chain(*[test['ticket'] for (name, test) in ref.items() if
+                                                      'ticket' in test.keys() and
+                                                      isinstance(test['ticket'], list)])))
+    return (tickets)
+
+def get_tests_by_ticket(overrides, ticket):
+    '''
+    Get list of tests with the given ticket
+    '''
+    
+    tests = {}
+    for build_variant in overrides:
+        tests[build_variant] = {}
+        for rule in overrides[build_variant]:
+            rule_tests = set()
+            # Remove anything that can be blanket removed. Can't otherwise remove from something we're iterating over
+            overrides[build_variant][rule] = {name: test for (name, test) in overrides[build_variant][rule].items()
+                                              if 'ticket' in test and
+                                              test['ticket'].count(ticket) != len(test['ticket'])}
+            for test in overrides[build_variant][rule]:
+                #Look to see if it should be pulled from the ticket list
+                if 'ticket' in overrides[build_variant][rule][test]:
+                    print test
+                    rule_tests.add(test)
+            if len(rule_tests) > 0:
+                tests[build_variant][rule] = rule_tests
+    return tests
 
 def delete_overrides_by_ticket(overrides, ticket):
         """Remove the overrides created by a given ticket.
@@ -64,6 +92,16 @@ def delete_overrides_by_ticket(overrides, ticket):
         """
         for build_variant in overrides:
             for rule in overrides[build_variant]:
-                overrides[build_variant][rule] = {name: test for (name, test) in st_ref.items()
+                # Remove anything that can be blanket removed. Can't otherwise remove from something we're iterating over
+                overrides[build_variant][rule] = {name: test for (name, test) in overrides[build_variant][rule].items()
                                                   if 'ticket' in test and
-                                                  test['ticket'].count(ticket) == len(test['ticket']}
+                                                  test['ticket'].count(ticket) != len(test['ticket'])}
+                for test in overrides[build_variant][rule]:
+                    #Look to see if it should be pulled from the ticket list
+                    if 'ticket' in overrides[build_variant][rule][test]:
+                        if ticket in overrides[build_variant][rule][test]['ticket']:
+                            overrides[build_variant][rule][test]['ticket'].remove(ticket)
+                    
+o = override.Override(overrides)
+o.save_to_file("master/perf_override.json")
+
