@@ -31,6 +31,10 @@ st_ref = overrides['linux-wt-standalone']['reference']
 #     if 'ticket' in test.keys() and not isinstance(test['ticket'], list):
 #         st_ref[name]['ticket'] = list(test['ticket'])
 
+# Clean up reference overrides that aren't dictionaries. 
+# for (variant_key, variant_value) in overrides.items():
+#     ref=variant_value['reference']
+#     variant_value['reference'] = {name: test for (name, test) in ref.items() if isinstance(ref[name], dict)}
 
 def reset_ndays(overrides):
     """ Remove all ndays overrides
@@ -52,11 +56,12 @@ def fix_non_list_tickets(overrides):
                 test['ticket'] = [test['ticket']]
     return (overrides)
 
-def get_tickets(overrides):
+def get_tickets(overrides, rule='reference'):
     """ Return a list of all tickets mentioned in overrides """
     tickets = set()
     for (variant_key, variant_value) in overrides.items():
-        ref = variant_value['reference']
+        print variant_key
+        ref = variant_value[rule]
         tickets = tickets.union(set(itertools.chain(*[test['ticket'] for (name, test) in ref.items() if
                                                       'ticket' in test.keys() and
                                                       isinstance(test['ticket'], list)])))
