@@ -32,18 +32,36 @@ st_ref = overrides['linux-wt-standalone']['reference']
 #         st_ref[name]['ticket'] = list(test['ticket'])
 
 # Clean up reference overrides that aren't dictionaries. 
-# for (variant_key, variant_value) in overrides.items():
-#     ref=variant_value['reference']
-#     variant_value['reference'] = {name: test for (name, test) in ref.items() if isinstance(ref[name], dict)}
+def clean_bad_entries(overrides):
+    ''' Remove entries that aren't a dictionary'''
+    for variant_value in overrides.values():
+        ref = variant_value['reference']
+        variant_value['reference'] = {name: test for (name, test) in ref.items() if
+                                      isinstance(ref[name], dict)}
+def find_non_ticketed(overrides):
+    ''' print out all entries without a ticket field'''
+    for build_variant in overrides:
+        for rule in overrides[build_variant]:
+            print "{} {}".format(build_variant, rule)
+            print ([name for name in overrides[build_variant][rule] if 'ticket' not in
+                    overrides[build_variant][rule][name]])
+
 
 def reset_ndays(overrides):
     """ Remove all ndays overrides
     Should be extended to remove all non-expired nday overrides, rather than all
     """
-
     for (variant_key, variant_value) in overrides.items():
         variant_value['ndays'] = {}
     return overrides
+
+def remove_non_ticketed(overrides):
+    ''' Delete overrides that don't have a ticket entry'''
+    for build_variant in overrides:
+        for rule in overrides[build_variant]:
+            overrides[build_variant][rule] = {name: test for (name, test) in
+                                              overrides[build_variant][rule].items() if 'ticket'
+                                              in test}
 
 def fix_non_list_tickets(overrides):
     """ Fix and occurrences with tickets as a string rather than a list
