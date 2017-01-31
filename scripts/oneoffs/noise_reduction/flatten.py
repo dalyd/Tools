@@ -35,3 +35,13 @@ def flatten(results, labels={}):
                     flat_results.append(new_doc)
     return flat_results
 
+def main():
+    '''
+    main
+    '''
+    results = load_data()
+    with open('flat.json', 'w') as output:
+        json.dump(flatten(results), output, indent=4, sort_keys=True)
+
+if __name__ == '__main__':
+    main()
