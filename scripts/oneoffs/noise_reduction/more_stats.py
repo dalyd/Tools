@@ -30,7 +30,7 @@ def real_benchrun_test_name(test_name, storage_engine):
     '''Make test names
     '''
     return '{}-{}'.format(test_name, storage_engine)
-    
+
 def average_across_cursor(curr):
     '''Generate averages across a cursor'''
     entries = [doc for doc in curr]
@@ -82,5 +82,13 @@ def generate_benchrun_summary(collection):
                                              results['all_range_to_median'],
                                              results['it_range_to_median_avg'],
                                              results['it_range_to_median_max']))
+
+
+def connect():
+    '''
+    Connect to localhost
+    '''
+    client = pymongo.MongoClient()
+    return client.noise
 
 #db.baseline.count({'test_name': {'$regex' : '^(?!mc)(?!primary)'}})
