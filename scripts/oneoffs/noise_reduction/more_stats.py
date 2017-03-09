@@ -44,6 +44,7 @@ def generate_io_summary(collection):
     qfilter = {'_id': 0, 'range_to_median': 1, 'all_range_to_median': 1, 'it_range_to_median_avg':1,
                'it_range_to_median_max':1}
     base_tests = ['latency', 'iops_', 'streaming_bandwidth']
+    base_tests = ['latency', 'iops', 'streaming_bandwidth']
     print('test name,R/W,range to median,all range to median,per task range to median avg,'
           'per task range to median max')
     for test in base_tests:
@@ -83,6 +84,43 @@ def generate_benchrun_summary(collection):
                                              results['it_range_to_median_avg'],
                                              results['it_range_to_median_max']))
 
+def name_and_storage_engine(testname):
+    '''Cleanup names and split into storage engine and test name
+
+    The storage engine, if it exists, is the last item after a -. In
+    some cases it doesn't exist. Need to handle that also. It looks
+    like that's only for the fio tests, which do not have a -.
+
+    '''
+    storage_engine = ""
+    parts = testname.split('-')
+    if len(parts) > 1:
+        testname = '_'.join(parts[:-1])
+        storage_engine = parts[-1]
+    return testname, storage_engine
+
+def generate_all(collection):
+    ''' Generate a dump of the whole collection, with storage engine split out '''
+    curr = collection.find({})
+    output = ['original test name,range to median,all range to median,per task range to median avg,'
+              'per task range to median max,per task range to median min,task name,thread_level,'
+              'test name,STORAGE_ENGINE']
+    for doc in curr:
+        testname, storage_engine = name_and_storage_engine(doc['test_name'])
+        output.append(','.join([doc['test_name'], str(doc['range_to_median']),
+                                str(doc['all_range_to_median']),
+                                str(doc['it_range_to_median_avg']),
+                                str(doc['it_range_to_median_max']),
+                                str(doc['it_range_to_median_min']),
+                                str(doc['task_name']),
+                                str(doc['thread_level']),
+                                testname, storage_engine]))
+    return output
+
+def dump_to_file(filename, collection):
+    ''' Call generate all and dump to the fiven file'''
+    with open(filename, 'w') as outfile:
+        outfile.write('\n'.join(generate_all(collection)))
 
 def connect():
     '''
