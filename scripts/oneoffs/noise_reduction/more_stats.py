@@ -74,7 +74,12 @@ def generate_benchrun_summary(collection):
                       'map_reduce_1M_doc',
                       'removemulti_jtrue',
                       'updatemulti_jtrue',
-                      'word_count_1M_doc']
+                      'word_count_1M_doc',
+                      'mixed_findOne',
+                      'mixed_insert',
+                      'mixed_update',
+                      'mixed_delete',
+                      'mixed_total']
     print('test name,SE,range to median,all range to median,per task range to median avg,'
           'per task range to median max')
     for se in ['wiredTiger', 'mmapv1']:
@@ -106,7 +111,7 @@ def generate_all(collection):
     curr = collection.find({})
     output = ['original test name,range to median,all range to median,per task range to median avg,'
               'per task range to median max,per task range to median min,task name,thread_level,'
-              'test name,STORAGE_ENGINE']
+              'test name,STORAGE_ENGINE,experiment']
     for doc in curr:
         testname, storage_engine = name_and_storage_engine(doc['test_name'])
         output.append(','.join([doc['test_name'], str(doc['range_to_median']),
@@ -116,7 +121,7 @@ def generate_all(collection):
                                 str(doc['it_range_to_median_min']),
                                 str(doc['task_name']),
                                 str(doc['thread_level']),
-                                testname, storage_engine]))
+                                testname, storage_engine, doc['experiment']]))
     return output
 
 def dump_to_file(filename, collection):
