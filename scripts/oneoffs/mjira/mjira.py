@@ -16,7 +16,8 @@ issues = team_issues(jira, expand='changelog')
 >>> for item in [(issue.key, issue.fields.customfield_10555, active_time(issue).total_seconds()/3600) for issue in issues if hasattr(issue.fields, 'customfield_10555') and issue.fields.customfield_10555 is not None]:
 ...     print(item)
 
-
+>>> sum((issue.fields.customfield_10555 for issue in issues if hasattr(issue.fields, 'customfield_10555') and issue.fields.customfield_10555 is not None))
+>>> sum((active_time(issue).total_seconds()/3600 for issue in issues if hasattr(issue.fields, 'customfield_10555') and issue.fields.customfield_10555 is not None))
 '''
 
 import datetime
